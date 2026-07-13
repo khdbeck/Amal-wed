@@ -19,7 +19,7 @@ let invitationOpened = false;
 let invitationTransitionFinished = false;
 let coverSafetyTimeout: number | undefined;
 let currentLanguage: "uz" | "ru" = "uz";
-let musicEnabled = false;
+let musicEnabled = true;
 let yandexMapState: "idle" | "loading" | "ready" | "error" = "idle";
 let yandexMapErrorKind: "key" | "load" | null = null;
 let yandexMapsScriptPromise: Promise<void> | null = null;

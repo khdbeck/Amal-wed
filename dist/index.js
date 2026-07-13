@@ -28,7 +28,7 @@ let invitationOpened = false;
 let invitationTransitionFinished = false;
 let coverSafetyTimeout;
 let currentLanguage = "uz";
-let musicEnabled = false;
+let musicEnabled = true;
 let yandexMapState = "idle";
 let yandexMapErrorKind = null;
 let yandexMapsScriptPromise = null;
