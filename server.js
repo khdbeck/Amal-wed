@@ -37,7 +37,81 @@ let telegramUpdateOffset = 0;
 const types = {
   ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8", ".json": "application/json; charset=utf-8",
-  ".svg": "image/svg+xml", ".mp3": "audio/mpeg", ".mp4": "video/mp4", ".webm": "video/webm",
+  ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+  ".webp": "image/webp", ".ico": "image/x-icon", ".mp3": "audio/mpeg", ".mp4": "video/mp4",
+  ".webm": "video/webm",
+};
+
+const mediaExtensions = new Set([".mp3", ".mp4", ".webm"]);
+
+const serveStaticFile = (request, response, filePath) => {
+  fs.stat(filePath, (statError, stats) => {
+    if (statError || !stats.isFile()) {
+      response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+      response.end("Not found");
+      return;
+    }
+
+    const extension = path.extname(filePath).toLowerCase();
+    const contentType = types[extension] || "application/octet-stream";
+    const baseHeaders = {
+      "Content-Type": contentType,
+      "Content-Length": stats.size,
+      "Accept-Ranges": "bytes",
+    };
+    const rangeHeader = mediaExtensions.has(extension) ? request.headers.range : undefined;
+
+    if (!rangeHeader) {
+      response.writeHead(200, baseHeaders);
+      if (request.method === "HEAD") {
+        response.end();
+        return;
+      }
+      fs.createReadStream(filePath).pipe(response);
+      return;
+    }
+
+    const rangeMatch = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader.trim());
+    if (!rangeMatch) {
+      response.writeHead(416, { ...baseHeaders, "Content-Range": `bytes */${stats.size}`, "Content-Length": 0 });
+      response.end();
+      return;
+    }
+
+    let start;
+    let end;
+    if (rangeMatch[1] === "") {
+      const suffixLength = Number(rangeMatch[2]);
+      if (!Number.isFinite(suffixLength) || suffixLength <= 0) {
+        response.writeHead(416, { ...baseHeaders, "Content-Range": `bytes */${stats.size}`, "Content-Length": 0 });
+        response.end();
+        return;
+      }
+      start = Math.max(stats.size - suffixLength, 0);
+      end = stats.size - 1;
+    } else {
+      start = Number(rangeMatch[1]);
+      end = rangeMatch[2] === "" ? stats.size - 1 : Math.min(Number(rangeMatch[2]), stats.size - 1);
+    }
+
+    if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || start > end || start >= stats.size) {
+      response.writeHead(416, { ...baseHeaders, "Content-Range": `bytes */${stats.size}`, "Content-Length": 0 });
+      response.end();
+      return;
+    }
+
+    const contentLength = end - start + 1;
+    response.writeHead(206, {
+      ...baseHeaders,
+      "Content-Length": contentLength,
+      "Content-Range": `bytes ${start}-${end}/${stats.size}`,
+    });
+    if (request.method === "HEAD") {
+      response.end();
+      return;
+    }
+    fs.createReadStream(filePath, { start, end }).pipe(response);
+  });
 };
 
 const sendJson = (response, statusCode, payload) => {
@@ -308,10 +382,12 @@ const server = http.createServer(async (request, response) => {
   const safePath = path.normalize(urlPath).replace(/^([/\\])+/, "").replace(/^(\.\.[/\\])+/, "");
   const filePath = path.join(root, safePath === "" ? "index.html" : safePath);
   if (!filePath.startsWith(root)) { response.writeHead(403); response.end("Forbidden"); return; }
-  fs.readFile(filePath, (error, content) => {
-    if (error) { response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" }); response.end("Not found"); return; }
-    response.writeHead(200, { "Content-Type": types[path.extname(filePath)] || "application/octet-stream" }); response.end(content);
-  });
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    response.writeHead(405, { "Content-Type": "text/plain; charset=utf-8", "Allow": "GET, HEAD" });
+    response.end("Method not allowed");
+    return;
+  }
+  serveStaticFile(request, response, filePath);
 });
 
 server.listen(port, () => {

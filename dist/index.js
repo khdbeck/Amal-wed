@@ -307,6 +307,11 @@ const setCoverVideoLanguage = (language) => {
     const nextSource = language === "uz"
         ? coverVideo.dataset.videoUz
         : coverVideo.dataset.videoRu;
+    const nextPoster = language === "uz"
+        ? coverVideo.dataset.posterUz
+        : coverVideo.dataset.posterRu;
+    if (nextPoster)
+        coverVideo.poster = nextPoster;
     if (!nextSource || coverVideo.getAttribute("src") === nextSource)
         return;
     coverVideo.src = nextSource;
@@ -402,6 +407,7 @@ const startMusic = () => __awaiter(void 0, void 0, void 0, function* () {
     if (!music || !music.paused)
         return;
     try {
+        music.muted = false;
         music.volume = 0.45;
         yield music.play();
         musicStarted = true;
@@ -447,8 +453,21 @@ const openInvitation = () => {
     invitationOpened = true;
     cover.classList.add("is-opening");
     coverTrigger === null || coverTrigger === void 0 ? void 0 : coverTrigger.setAttribute("disabled", "true");
-    if (musicEnabled)
-        void startMusic();
+    // Keep this play call synchronous with the tap: iOS Safari only permits
+    // audible media while the user-activation event is still active.
+    if (musicEnabled && music) {
+        music.muted = false;
+        music.volume = 0.45;
+        const musicPlayback = music.play();
+        musicStarted = true;
+        soundToggle === null || soundToggle === void 0 ? void 0 : soundToggle.classList.remove("is-muted");
+        soundToggle === null || soundToggle === void 0 ? void 0 : soundToggle.setAttribute("aria-pressed", "true");
+        void musicPlayback.catch(() => {
+            musicStarted = false;
+            soundToggle === null || soundToggle === void 0 ? void 0 : soundToggle.classList.add("is-muted");
+            soundToggle === null || soundToggle === void 0 ? void 0 : soundToggle.setAttribute("aria-pressed", "false");
+        });
+    }
     let fallbackStarted = false;
     const playFrameFallback = () => {
         if (fallbackStarted || invitationTransitionFinished)
