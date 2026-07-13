@@ -2,10 +2,11 @@
   "name": "Amal-wedding-invt",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.js",
+  "main": "server.js",
   "scripts": {
     "build": "tsc",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "start": "node server.js"
   },
   "dependencies": {
     "mongodb": "^7.5.0"
