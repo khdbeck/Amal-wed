@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="uz">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Amal & Parizoda Wedding Invitation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Great+Vibes&family=Montserrat:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="src/styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <main class="invite" aria-label="Wedding invitation for Amal and Parizoda">
+        <div class="phone-notch" aria-hidden="true"></div>
+
+        <button class="language-pill" type="button" aria-label="Tilni o'zgartirish">
+          <span class="control-icon" aria-hidden="true">&#9678;</span>
+          <span class="is-active" data-lang-option="uz">UZ</span>
+          <span>/</span>
+          <span data-lang-option="ru">RU</span>
+        </button>
+
+        <button class="sound-toggle is-muted" type="button" aria-label="Toggle music" aria-pressed="false">
+          <span class="sound-on" aria-hidden="true">&#9835;</span>
+          <span class="sound-off" aria-hidden="true">&#9835;</span>
+          <span class="sound-choice-label">Musiqasiz</span>
+        </button>
+
+        <audio id="weddingMusic" loop preload="auto">
+          <source src="/public/Music.mp3" type="audio/mpeg" />
+        </audio>
+
+        <section class="cover section-card" data-theme="sage" aria-label="Invitation cover">
+          <button class="cover-trigger" type="button" aria-label="Open wedding invitation">
+            <video
+              class="cover-video"
+              muted
+              playsinline
+              preload="auto"
+              data-video-uz="/public/video-uzb.mp4"
+              data-video-ru="/public/video-ru.mp4"
+              aria-hidden="true"
+            >
+              <source src="/public/video-uzb.mp4" type="video/mp4" />
+            </video>
+            <span class="cover-frames" aria-hidden="true">
+              <span class="cover-frame cover-frame-closed"></span>
+              <span class="cover-frame cover-frame-lifted"></span>
+              <span class="cover-motion-glow"></span>
+            </span>
+            <span class="cover-script visually-hidden">You are invited</span>
+          </button>
+        </section>
+
+        <section class="hero section-card" aria-label="Wedding announcement">
+          <video class="hero-video" muted loop playsinline preload="auto" aria-hidden="true">
+            <source src="/public/hero-section-vid.mp4" type="video/mp4" />
+          </video>
+          <div class="hero-copy">
+            <p class="eyebrow">We are getting married</p>
+            <h1>Amal &amp; Parizoda</h1>
+            <div class="divider"><span></span><i>✦</i><span></span></div>
+            <p class="date">15 August 2026</p>
+          </div>
+          <a class="hero-rsvp" href="#rsvp">Confirm attendance</a>
+        </section>
+
+        <section class="story section-light" aria-label="Love story">
+          <p class="script-kicker">Our Journey</p>
+          <h2>Our Love Story</h2>
+          <div class="ornament"><span></span><i>♡</i><span></span></div>
+          <div class="timeline">
+            <article>
+              <time>2020</time>
+              <h3>How We Met</h3>
+              <p>Our paths crossed in the most unexpected way. What started as a chance encounter became the beginning of our beautiful journey together.</p>
+            </article>
+            <article>
+              <time>2021</time>
+              <h3>First Adventure</h3>
+              <p>We discovered our shared love for exploration and long conversations, and every quiet moment brought us closer.</p>
+            </article>
+            <article>
+              <time>2023</time>
+              <h3>Moving Forward</h3>
+              <p>We knew this was forever. Building our life together made every passing day feel warmer and stronger.</p>
+            </article>
+            <article>
+              <time>2025</time>
+              <h3>The Proposal</h3>
+              <p>With hearts full of love and dreams for our future, the question was asked and answered with tears of joy.</p>
+            </article>
+          </div>
+          <img class="doves" src="assets/doves-watercolor.png" alt="" aria-hidden="true" />
+        </section>
+
+        <section class="program section-dark" aria-label="Day program">
+          <h2>Day Program</h2>
+          <p>What we have prepared for you</p>
+          <div class="program-list">
+            <article>
+              <i>♙</i>
+              <time>4:30 PM</time>
+              <div><h3>Guest Arrival</h3><p>Welcome and reception</p></div>
+            </article>
+            <article>
+              <i>♡</i>
+              <time>5:00 PM</time>
+              <div><h3>Ceremony</h3><p>Civil wedding</p></div>
+            </article>
+            <article>
+              <i>♧</i>
+              <time>6:00 PM</time>
+              <div><h3>Cocktail</h3><p>Aperitifs and drinks</p></div>
+            </article>
+            <article>
+              <i>♨</i>
+              <time>8:00 PM</time>
+              <div><h3>Dinner</h3><p>Wedding banquet</p></div>
+            </article>
+            <article>
+              <i>♪</i>
+              <time>11:00 PM</time>
+              <div><h3>Party</h3><p>Let's dance!</p></div>
+            </article>
+            <article>
+              <i>✦</i>
+              <time>2:30 AM</time>
+              <div><h3>End</h3><p>Goodbye</p></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="gifts section-light" aria-label="Gifts">
+          <h2>Gifts</h2>
+          <p>Your presence is what matters most to us. If you wish to give us a gift, you can do so in the way that suits you best.</p>
+          <button class="accordion" type="button" aria-expanded="false">
+            <span>Contribution</span>
+            <b>⌄</b>
+          </button>
+          <div class="accordion-panel">
+            <p>Bank card: 8600 0000 0000 0000</p>
+            <p>Name: Amal &amp; Parizoda</p>
+          </div>
+        </section>
+
+        <section class="details section-white" aria-label="Event details">
+          <p class="eyebrow orange">Join us</p>
+          <h2>Event Details</h2>
+          <p class="details-intro">We can't wait to celebrate this special day with you. Here's everything you need to know.</p>
+          <article class="detail-card">
+            <div class="sparkle">✦</div>
+            <h3>Wedding Ceremony</h3>
+            <p class="meta">◷ 4:00 PM</p>
+            <p class="meta">⌖ Hotel Uzbekistan</p>
+            <p>45 Mahtumquli Street, Tashkent, Uzbekistan</p>
+            <div class="map-shell">
+              <div id="yandex-map" class="map" role="region" aria-label="Interactive map with ceremony pin"></div>
+              <p class="map-status" aria-live="polite">Map is loading…</p>
+            </div>
+            <a class="outline-btn map-link" href="https://yandex.ru/maps/-/CTFIeN7u" target="_blank" rel="noreferrer">⌁ Open in Maps</a>
+            <a class="outline-btn" href="#" download>▣ Add to Calendar</a>
+          </article>
+          <article class="dress">
+            <h3>Dress Code</h3>
+            <p>Formal / Black Tie Optional</p>
+            <span>We kindly ask guests to dress elegantly for our celebration.</span>
+          </article>
+        </section>
+
+        <section id="rsvp" class="rsvp section-light" aria-label="RSVP form">
+          <p class="eyebrow orange">Be our guest</p>
+          <h2>RSVP</h2>
+          <div class="ornament"><span></span><i>♡</i><span></span></div>
+          <p>Please let us know if you'll be joining us by July 15, 2026</p>
+          <form>
+            <label>
+              Full Name *
+              <input required name="name" maxlength="120" autocomplete="name" placeholder="Your full name" />
+            </label>
+            <label>
+              Phone number (optional)
+              <input type="tel" name="phone" maxlength="40" autocomplete="tel" inputmode="tel" placeholder="+998 90 123 45 67" />
+            </label>
+            <fieldset>
+              <legend>Will you be attending? *</legend>
+              <label><input required type="radio" name="attending" value="accept" /> Joyfully Accept</label>
+              <label><input type="radio" name="attending" value="decline" /> Regretfully Decline</label>
+            </fieldset>
+            <label>
+              Message for the Couple
+              <textarea name="message" maxlength="1000" placeholder="Share your well wishes..."></textarea>
+            </label>
+            <button type="submit">Send RSVP</button>
+            <output class="form-status" aria-live="polite"></output>
+          </form>
+        </section>
+      </main>
+    </div>
+    <script src="dist/index.js"></script>
+  </body>
+</html>
