@@ -628,7 +628,6 @@ p {
   display: block;
   width: min(100%, 430px);
   margin: 84px auto -8px;
-  mix-blend-mode: multiply;
 }
 
 .section-dark {
