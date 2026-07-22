@@ -901,6 +901,10 @@ p {
   gap: 10px;
 }
 
+.rsvp fieldset legend {
+  margin-bottom: 6px;
+}
+
 .rsvp fieldset label {
   display: flex;
   align-items: center;
