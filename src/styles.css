@@ -83,21 +83,12 @@ body.cover-locked {
 .sound-toggle {
   right: max(28px, calc((100vw - 523px) / 2 + 28px));
   bottom: 22px;
-  width: auto;
+  width: 56px;
   min-width: 56px;
   height: 56px;
-  padding: 0 18px;
+  padding: 0;
   border-radius: 999px;
-  grid-auto-flow: column;
-  gap: 9px;
   font-size: 22px;
-}
-
-.sound-choice-label {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
 }
 
 .sound-toggle .sound-off {
@@ -477,6 +468,10 @@ p {
   font-weight: 500;
 }
 
+.hero .eyebrow {
+  transform: translateY(-8px);
+}
+
 .hero h1 {
   display: grid;
   justify-items: center;
@@ -641,6 +636,12 @@ p {
   background: var(--green);
 }
 
+.program {
+  min-height: auto;
+  padding-top: 60px;
+  padding-bottom: 44px;
+}
+
 .program h2 {
   text-align: center;
   font-size: 68px;
@@ -654,24 +655,24 @@ p {
 }
 
 .program-list {
-  margin-top: 72px;
+  margin-top: 42px;
 }
 
 .program-list article {
   position: relative;
   display: grid;
-  grid-template-columns: 70px 96px 1fr;
-  gap: 16px;
+  grid-template-columns: 64px 92px minmax(0, 1fr);
+  gap: 14px;
   align-items: start;
-  min-height: 108px;
+  min-height: 92px;
 }
 
 .program-list article::before {
   content: "";
   position: absolute;
-  left: 34px;
-  top: 66px;
-  bottom: -42px;
+  left: 31px;
+  top: 62px;
+  bottom: -30px;
   width: 2px;
   background: rgba(255, 255, 255, 0.25);
 }
@@ -683,9 +684,9 @@ p {
 .program-list i {
   display: grid;
   place-items: center;
-  width: 66px;
-  height: 66px;
-  border: 3px solid rgba(255, 255, 255, 0.28);
+  width: 62px;
+  height: 62px;
+  border: 2px solid rgba(255, 255, 255, 0.28);
   border-radius: 50%;
   font-style: normal;
   font-size: 24px;
@@ -694,8 +695,8 @@ p {
 .program-list time {
   display: inline-grid;
   place-items: center;
-  margin-top: 14px;
-  min-height: 30px;
+  margin-top: 12px;
+  min-height: 28px;
   border-radius: 5px;
   background: #f4c79f;
   color: var(--green);
@@ -704,42 +705,47 @@ p {
 }
 
 .program-list h3 {
-  margin-top: 8px;
+  margin-top: 4px;
   color: #fff7ec;
-  font-size: 28px;
+  font-size: 26px;
+  line-height: 1.06;
 }
 
 .program-list p {
-  margin: 2px 0 0;
+  margin: 4px 0 0;
   color: rgba(255, 255, 255, 0.68);
-  font-size: 18px;
+  font-size: 16px;
 }
 
-.rsvp > p,
-.details-intro {
+.rsvp > p {
+  max-width: 440px;
+  margin: 6px auto 0;
   color: var(--muted);
-  font-size: 22px;
+  font-size: 16px;
+  line-height: 1.45;
 }
 
 .section-white {
   text-align: center;
-  background: #fff;
+  background: var(--cream);
 }
 
 .orange {
   color: var(--copper);
 }
 
-.details h2 {
-  font-family: "Cormorant Garamond", serif;
-  font-size: 46px;
+.details {
+  min-height: auto;
+  padding-top: 36px;
+  padding-bottom: 48px;
 }
 
 .detail-card {
-  margin-top: 44px;
+  margin-top: 0;
   padding: 32px 28px;
-  border-radius: 14px;
-  background: #f7f1e6;
+  border: 1px solid rgba(126, 106, 98, 0.38);
+  border-radius: 18px;
+  background: rgba(255, 250, 242, 0.48);
 }
 
 .sparkle {
@@ -765,7 +771,6 @@ p {
 }
 
 .map-shell {
-  position: relative;
   height: 260px;
   margin: 26px 0;
   overflow: hidden;
@@ -774,40 +779,11 @@ p {
   background: #eef1e9;
 }
 
-.map {
+.map-frame {
+  display: block;
   width: 100%;
   height: 100%;
-  background:
-    linear-gradient(18deg, transparent 45%, #c8d6df 46% 50%, transparent 51%),
-    linear-gradient(96deg, transparent 48%, #c8d6df 49% 52%, transparent 53%),
-    linear-gradient(150deg, transparent 40%, #d7c6b0 41% 44%, transparent 45%),
-    radial-gradient(circle at 82% 78%, #bde6cd 0 30%, transparent 31%),
-    #f7f5ef;
-}
-
-.map-status {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: grid;
-  place-items: center;
-  margin: 0;
-  padding: 28px;
-  background: rgba(247, 245, 239, 0.9);
-  color: #70645e;
-  font-size: 14px;
-  line-height: 1.55;
-  text-align: center;
-  transition: opacity 180ms ease;
-}
-
-.map-shell.is-ready .map-status {
-  pointer-events: none;
-  opacity: 0;
-}
-
-.map-shell.has-error .map-status {
-  background: rgba(247, 245, 239, 0.96);
+  border: 0;
 }
 
 .outline-btn {
@@ -825,38 +801,131 @@ p {
 }
 
 .dress {
-  margin-top: 28px;
-  padding: 28px;
-  border-radius: 0 0 14px 14px;
-  background: var(--green);
-  color: var(--peach);
+  margin-top: 16px;
+  padding: 18px 20px;
+  border: 1px solid rgba(48, 79, 43, 0.42);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--green);
+  box-shadow: 0 10px 26px rgba(31, 72, 49, 0.07);
 }
 
 .dress h3 {
-  font-size: 30px;
+  font-size: 26px;
 }
 
 .dress p {
-  margin: 18px 0 10px;
-  font-size: 21px;
+  margin: 8px 0 6px;
+  font-size: 17px;
+  font-weight: 600;
 }
 
 .dress span {
-  color: rgba(246, 217, 187, 0.78);
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .rsvp {
+  min-height: auto;
+  padding-top: 34px;
+  padding-bottom: 24px;
   text-align: center;
+}
+
+.rsvp > .eyebrow {
+  margin-bottom: 2px;
+  font-size: 10px;
+}
+
+.rsvp h2 {
+  font-size: 52px;
+  line-height: 0.9;
+}
+
+.rsvp .ornament {
+  gap: 12px;
+  margin: 5px 0 8px;
+}
+
+.rsvp .ornament span {
+  width: 56px;
 }
 
 .rsvp form {
   display: grid;
-  gap: 24px;
-  margin-top: 56px;
-  padding: 40px 28px;
-  border-radius: 24px 24px 0 0;
-  background: #fff;
+  gap: 13px;
+  margin-top: 12px;
+  padding: 22px 20px 24px;
+  border: 1px solid rgba(126, 88, 68, 0.58);
+  border-radius: 28px;
+  background: var(--cream);
+  box-shadow: none;
   text-align: left;
+}
+
+.rsvp label,
+.rsvp legend {
+  font-size: 15px;
+  line-height: 1.15;
+}
+
+.rsvp input,
+.rsvp textarea {
+  margin-top: 7px;
+  border-color: rgba(48, 79, 43, 0.45);
+  border-radius: 13px;
+  padding: 10px 12px;
+  font-size: 16px;
+  text-align: left;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.rsvp input:focus,
+.rsvp textarea:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(48, 79, 43, 0.12);
+  outline: 0;
+}
+
+.rsvp input {
+  min-height: 44px;
+}
+
+.rsvp textarea {
+  min-height: 76px;
+}
+
+.rsvp fieldset {
+  gap: 10px;
+}
+
+.rsvp fieldset label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.rsvp fieldset input {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  min-height: 20px;
+  margin: 0;
+  padding: 0;
+}
+
+.rsvp form button {
+  min-height: 48px;
+  font-size: 15px;
+}
+
+.rsvp .form-status {
+  font-size: 13px;
 }
 
 label,
@@ -1127,10 +1196,10 @@ body.cover-locked .language-pill {
 body.cover-locked .sound-toggle {
   right: max(31px, calc((100vw - 601px) / 2 + 31px));
   bottom: 31px;
-  width: auto;
-  min-width: 132px;
+  width: 54px;
+  min-width: 54px;
   height: 54px;
-  padding: 0 18px;
+  padding: 0;
 }
 
 @keyframes reference-closed-frame {

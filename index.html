@@ -27,7 +27,6 @@
         <button class="sound-toggle" type="button" aria-label="Toggle music" aria-pressed="true">
           <span class="sound-on" aria-hidden="true">&#9835;</span>
           <span class="sound-off" aria-hidden="true">&#9835;</span>
-          <span class="sound-choice-label">Musiqa bilan</span>
         </button>
 
         <audio id="weddingMusic" loop preload="auto">
@@ -121,22 +120,14 @@
               <div><h3>Dinner</h3><p>Wedding banquet</p></div>
             </article>
             <article>
-              <i>♪</i>
-              <time>11:00 PM</time>
-              <div><h3>Party</h3><p>Let's dance!</p></div>
-            </article>
-            <article>
               <i>✦</i>
-              <time>2:30 AM</time>
+              <time>10:30 PM</time>
               <div><h3>End</h3><p>Goodbye</p></div>
             </article>
           </div>
         </section>
 
         <section class="details section-white" aria-label="Event details">
-          <p class="eyebrow orange">Join us</p>
-          <h2>Event Details</h2>
-          <p class="details-intro">We can't wait to celebrate this special day with you. Here's everything you need to know.</p>
           <article class="detail-card">
             <div class="sparkle">✦</div>
             <h3>Wedding Ceremony</h3>
@@ -144,16 +135,16 @@
             <p class="meta">⌖ Hotel Uzbekistan</p>
             <p>45 Mahtumquli Street, Tashkent, Uzbekistan</p>
             <div class="map-shell">
-              <div id="yandex-map" class="map" role="region" aria-label="Interactive map with ceremony pin"></div>
-              <p class="map-status" aria-live="polite">Map is loading…</p>
+              <iframe
+                class="map-frame"
+                src="https://yandex.ru/map-widget/v1/?mode=search&amp;oid=39433811199&amp;ol=biz&amp;z=17"
+                title="Hotel Uzbekistan — Yandex Maps"
+                loading="lazy"
+                allowfullscreen
+              ></iframe>
             </div>
-            <a class="outline-btn map-link" href="https://yandex.uz/maps/org/hotel_uzbekistan/39433811199/" target="_blank" rel="noreferrer">⌁ Open in Maps</a>
+            <a class="outline-btn map-link" href="https://yandex.ru/maps/-/CTFIeN7u" target="_blank" rel="noreferrer">⌁ Open in Maps</a>
             <a class="outline-btn" href="#" download>▣ Add to Calendar</a>
-          </article>
-          <article class="dress">
-            <h3>Dress Code</h3>
-            <p>Formal / Black Tie Optional</p>
-            <span>We kindly ask guests to dress elegantly for our celebration.</span>
           </article>
         </section>
 
@@ -162,6 +153,11 @@
           <h2>RSVP</h2>
           <div class="ornament"><span></span><i>♡</i><span></span></div>
           <p>Please let us know if you'll be joining us by August 5, 2026</p>
+          <article class="dress">
+            <h3>Dress Code</h3>
+            <p>Formal</p>
+            <span>We kindly ask guests to dress elegantly for our celebration.</span>
+          </article>
           <form>
             <label>
               Full Name *
@@ -169,7 +165,7 @@
             </label>
             <label>
               Phone number (optional)
-              <input type="tel" name="phone" maxlength="40" autocomplete="tel" inputmode="tel" placeholder="+998 90 123 45 67" />
+              <input type="tel" name="phone" maxlength="17" autocomplete="tel" inputmode="tel" value="+998 " placeholder="+998 90 123 45 67" />
             </label>
             <fieldset class="attendance-fieldset">
               <legend>Will you be attending? *</legend>

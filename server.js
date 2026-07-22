@@ -734,14 +734,6 @@ const validateRsvp = (body) => {
 
 const server = http.createServer(async (request, response) => {
   const urlPath = decodeURIComponent((request.url || "/").split("?")[0]);
-  if (urlPath === "/api/config" && request.method === "GET") {
-    const latitude = Number(process.env.YANDEX_MAPS_LAT || 41.311341);
-    const longitude = Number(process.env.YANDEX_MAPS_LNG || 69.282722);
-    sendJson(response, 200, { yandexMapsApiKey: process.env.YANDEX_MAPS_API_KEY || "", yandexMapsCenter: [
-      Number.isFinite(latitude) ? latitude : 41.311341, Number.isFinite(longitude) ? longitude : 69.282722,
-    ] });
-    return;
-  }
   if (urlPath === "/api/rsvp") {
     if (request.method !== "POST") { sendJson(response, 405, { ok: false, error: "Method not allowed" }); return; }
     if (isRateLimited(request)) { sendJson(response, 429, { ok: false, error: "Too many requests" }); return; }

@@ -9,9 +9,8 @@ const music = document.querySelector<HTMLAudioElement>("#weddingMusic");
 const soundToggle = document.querySelector<HTMLButtonElement>(".sound-toggle");
 const form = document.querySelector<HTMLFormElement>(".rsvp form");
 const statusOutput = document.querySelector<HTMLOutputElement>(".form-status");
-const mapContainer = document.querySelector<HTMLElement>("#yandex-map");
-const mapShell = document.querySelector<HTMLElement>(".map-shell");
-const mapStatus = document.querySelector<HTMLElement>(".map-status");
+const phoneInput = document.querySelector<HTMLInputElement>("input[name='phone']");
+const phonePrefix = "+998 ";
 
 let musicStarted = false;
 let invitationOpened = false;
@@ -19,9 +18,6 @@ let invitationTransitionFinished = false;
 let coverSafetyTimeout: number | undefined;
 let currentLanguage: "uz" | "ru" = "uz";
 let musicEnabled = true;
-let yandexMapState: "idle" | "loading" | "ready" | "error" = "idle";
-let yandexMapErrorKind: "key" | "load" | null = null;
-let yandexMapsScriptPromise: Promise<void> | null = null;
 
 const copy = {
   uz: {
@@ -55,25 +51,18 @@ const copy = {
       ["18:30", "Mehmonlar kelishi", "Kutib olish"],
       ["19:00", "Kuyov va kelinning kirib kelishi", "Bayram boshlanishi"],
       ["20:00", "Kechki ovqat", "To'y ziyofati"],
-      ["23:00", "Bazm", "Raqsga tushamiz!"],
-      ["02:30", "Yakun", "Xayrlashuv"]
+      ["22:30", "Yakun", "Xayrlashuv"]
     ],
     detailsLabel: "Tadbir tafsilotlari",
-    joinUs: "Bizga qo'shiling",
-    detailsTitle: "Tadbir tafsilotlari",
-    detailsIntro: "Ushbu maxsus kunni siz bilan nishonlashni intiqlik bilan kutyapmiz. Kerakli barcha ma'lumotlar shu yerda.",
     ceremonyTitle: "To'y marosimi",
     ceremonyTime: "◷ 18:30",
     ceremonyPlace: "⌖ Hotel Uzbekistan",
     ceremonyAddress: "Mahtumquli ko'chasi, 45, Toshkent, O'zbekiston",
     mapLabel: "Marosim belgisi qo'yilgan xarita",
-    mapLoading: "Xarita yuklanmoqda…",
-    mapKeyMissing: "Yandex Maps API kaliti sozlanmagan. .env fayliga YANDEX_MAPS_API_KEY ni qo'shing.",
-    mapError: "Xaritani yuklab bo'lmadi. API kaliti va domen cheklovlarini tekshiring.",
     openMaps: "⌁ Xarita orqali ochish",
     addCalendar: "▣ Kalendarga qo'shish",
     dressTitle: "Dress-kod",
-    dressCode: "Rasmiy / qora galstuk ixtiyoriy",
+    dressCode: "Rasmiy",
     dressText: "Bayramimizga mehmonlardan nafis va did bilan kiyinib kelishlarini so'raymiz.",
     rsvpLabel: "Ishtirokni tasdiqlash formasi",
     rsvpEyebrow: "Mehmonimiz bo'ling",
@@ -127,25 +116,18 @@ const copy = {
       ["18:30", "Прибытие гостей", "Встреча гостей"],
       ["19:00", "Вход жениха и невесты", "Начало торжества"],
       ["20:00", "Ужин", "Свадебный банкет"],
-      ["23:00", "Вечеринка", "Танцуем!"],
-      ["02:30", "Завершение", "До свидания"]
+      ["22:30", "Завершение", "До свидания"]
     ],
     detailsLabel: "Детали мероприятия",
-    joinUs: "Присоединяйтесь к нам",
-    detailsTitle: "Детали мероприятия",
-    detailsIntro: "Мы с нетерпением ждем возможности разделить с вами этот особенный день. Здесь вся нужная информация.",
     ceremonyTitle: "Свадебная церемония",
     ceremonyTime: "◷ 18:30",
     ceremonyPlace: "⌖ Отель «Узбекистан»",
     ceremonyAddress: "улица Махтумкули, 45, Ташкент, Узбекистан",
     mapLabel: "Карта с отметкой места церемонии",
-    mapLoading: "Карта загружается…",
-    mapKeyMissing: "Ключ Yandex Maps API не настроен. Добавьте YANDEX_MAPS_API_KEY в файл .env.",
-    mapError: "Не удалось загрузить карту. Проверьте API-ключ и ограничения домена.",
     openMaps: "⌁ Открыть в картах",
     addCalendar: "▣ Добавить в календарь",
     dressTitle: "Дресс-код",
-    dressCode: "Формальный / Black Tie по желанию",
+    dressCode: "Формальный",
     dressText: "Мы будем рады, если гости придут на наш праздник в элегантных образах.",
     rsvpLabel: "Форма подтверждения участия",
     rsvpEyebrow: "Будьте нашим гостем",
@@ -190,112 +172,6 @@ const setLabelEnd = (selector: string, value: string) => {
   const element = document.querySelector<HTMLElement>(selector);
   const textNode = Array.from(element?.childNodes ?? []).find((node) => node.nodeType === Node.TEXT_NODE);
   if (textNode) textNode.textContent = ` ${value}`;
-};
-
-type YandexMapInstance = {
-  geoObjects: { add: (geoObject: unknown) => void };
-  behaviors: { disable: (behavior: string) => void };
-};
-
-type YandexMapsApi = {
-  ready: (callback: () => void) => void;
-  Map: new (
-    container: string | HTMLElement,
-    state: { center: number[]; zoom: number; controls: string[] },
-    options?: Record<string, unknown>
-  ) => YandexMapInstance;
-  Placemark: new (
-    coordinates: number[],
-    properties?: Record<string, string>,
-    options?: Record<string, string | boolean>
-  ) => unknown;
-};
-
-type PublicConfig = {
-  yandexMapsApiKey?: string;
-  yandexMapsCenter?: number[];
-};
-
-const getYandexMapsApi = () => (
-  window as typeof window & { ymaps?: YandexMapsApi }
-).ymaps;
-
-const loadYandexMapsApi = (apiKey: string, language: "uz" | "ru") => {
-  if (getYandexMapsApi()) return Promise.resolve();
-  if (yandexMapsScriptPromise) return yandexMapsScriptPromise;
-
-  yandexMapsScriptPromise = new Promise<void>((resolve, reject) => {
-    const script = document.createElement("script");
-    const apiLanguage = language === "ru" ? "ru_RU" : "en_US";
-    script.src = `https://api-maps.yandex.ru/2.1/?apikey=${encodeURIComponent(apiKey)}&lang=${apiLanguage}`;
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("yandex-maps-load-error"));
-    document.head.append(script);
-  });
-
-  return yandexMapsScriptPromise;
-};
-
-const initializeYandexMap = async () => {
-  if (!mapContainer || !mapShell || yandexMapState !== "idle") return;
-
-  yandexMapState = "loading";
-  setText(".map-status", copy[currentLanguage].mapLoading);
-
-  try {
-    const response = await fetch("/api/config", { cache: "no-store" });
-    if (!response.ok) throw new Error("config-load-error");
-
-    const config = await response.json() as PublicConfig;
-    const apiKey = config.yandexMapsApiKey?.trim();
-    if (!apiKey) {
-      yandexMapErrorKind = "key";
-      throw new Error("yandex-maps-key-missing");
-    }
-
-    const configuredCenter = config.yandexMapsCenter;
-    const center = Array.isArray(configuredCenter)
-      && configuredCenter.length === 2
-      && configuredCenter.every(Number.isFinite)
-      ? configuredCenter
-      : [41.311341, 69.282722];
-
-    await loadYandexMapsApi(apiKey, currentLanguage);
-    const yandexMaps = getYandexMapsApi();
-    if (!yandexMaps) throw new Error("yandex-maps-global-missing");
-
-    await new Promise<void>((resolve) => yandexMaps.ready(resolve));
-
-    const map = new yandexMaps.Map(mapContainer, {
-      center,
-      zoom: 15,
-      controls: ["zoomControl", "fullscreenControl"],
-    });
-
-    const text = copy[currentLanguage];
-    const placemark = new yandexMaps.Placemark(center, {
-      balloonContentHeader: text.ceremonyTitle,
-      balloonContentBody: `${text.ceremonyPlace}<br>${text.ceremonyAddress}`,
-      hintContent: text.ceremonyPlace,
-    }, {
-      preset: "islands#redDotIcon",
-      hideIconOnBalloonOpen: false,
-    });
-
-    map.geoObjects.add(placemark);
-    map.behaviors.disable("scrollZoom");
-    yandexMapState = "ready";
-    mapShell.classList.add("is-ready");
-  } catch (error) {
-    yandexMapState = "error";
-    mapShell.classList.add("has-error");
-    const message = yandexMapErrorKind === "key"
-      ? copy[currentLanguage].mapKeyMissing
-      : copy[currentLanguage].mapError;
-    if (mapStatus) mapStatus.textContent = message;
-    console.error("Yandex Maps initialization failed:", error);
-  }
 };
 
 const primeCoverVideoFirstFrame = () => {
@@ -351,12 +227,7 @@ const applyLanguage = (language: "uz" | "ru") => {
   document.querySelector(".program")?.setAttribute("aria-label", text.programLabel);
   document.querySelector(".details")?.setAttribute("aria-label", text.detailsLabel);
   document.querySelector(".rsvp")?.setAttribute("aria-label", text.rsvpLabel);
-  document.querySelector(".map")?.setAttribute("aria-label", text.mapLabel);
-  if (yandexMapState === "idle" || yandexMapState === "loading") {
-    setText(".map-status", text.mapLoading);
-  } else if (yandexMapState === "error") {
-    setText(".map-status", yandexMapErrorKind === "key" ? text.mapKeyMissing : text.mapError);
-  }
+  document.querySelector(".map-frame")?.setAttribute("title", text.mapLabel);
 
   languageButton?.querySelectorAll<HTMLElement>("[data-lang-option]").forEach((option) => {
     option.classList.toggle("is-active", option.dataset.langOption === language);
@@ -384,9 +255,6 @@ const applyLanguage = (language: "uz" | "ru") => {
     setText(`.program-list article:nth-child(${index + 1}) p`, text.program[index][2]);
   });
 
-  setText(".details > .eyebrow", text.joinUs);
-  setText(".details h2", text.detailsTitle);
-  setText(".details-intro", text.detailsIntro);
   setText(".detail-card h3", text.ceremonyTitle);
   setText(".detail-card .meta:nth-of-type(1)", text.ceremonyTime);
   setText(".detail-card .meta:nth-of-type(2)", text.ceremonyPlace);
@@ -421,7 +289,6 @@ languageButton?.addEventListener("click", () => {
 });
 
 applyLanguage(currentLanguage);
-void initializeYandexMap();
 
 const startMusic = async () => {
   if (!music || !music.paused) return;
@@ -579,11 +446,23 @@ soundToggle?.addEventListener("click", async () => {
   }
 });
 
+phoneInput?.addEventListener("input", () => {
+  if (phoneInput.value.startsWith(phonePrefix)) return;
+
+  const localDigits = phoneInput.value.replace(/\D/g, "").replace(/^998/, "").slice(0, 9);
+  phoneInput.value = phonePrefix + localDigits;
+});
+
+phoneInput?.addEventListener("focus", () => {
+  if (!phoneInput.value.trim()) phoneInput.value = phonePrefix;
+});
+
 form?.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const submitButton = form.querySelector<HTMLButtonElement>("button[type='submit']");
   const formData = new FormData(form);
+  const phone = String(formData.get("phone") ?? "").trim();
   if (statusOutput) statusOutput.value = copy[currentLanguage].formSending;
   if (submitButton) submitButton.disabled = true;
 
@@ -593,7 +472,7 @@ form?.addEventListener("submit", async (event) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: formData.get("name"),
-        phone: formData.get("phone"),
+        phone: phone === phonePrefix.trim() ? "" : phone,
         attending: formData.get("attending"),
         side: formData.get("side"),
         message: formData.get("message"),
