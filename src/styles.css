@@ -70,11 +70,6 @@ body.cover-locked {
   font-size: 14px;
 }
 
-.language-pill .control-icon {
-  font-size: 20px;
-  line-height: 1;
-}
-
 .language-pill .is-active {
   color: var(--green);
   font-weight: 700;
@@ -833,7 +828,7 @@ p {
 }
 
 .rsvp > .eyebrow {
-  margin-bottom: 2px;
+  margin-bottom: 10px;
   font-size: 10px;
 }
 
