@@ -1,7 +1,7 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ObjectId, ServerApiVersion } = require("mongodb");
 
 const root = __dirname;
 const port = Number(process.env.PORT || 3000);
@@ -33,6 +33,7 @@ const telegramConfigured = Boolean(telegramBotToken && mongodbUri);
 let mongoClient;
 let databasePromise;
 let telegramUpdateOffset = 0;
+const pendingTelegramEdits = new Map();
 
 const types = {
   ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
@@ -150,6 +151,8 @@ const getDatabase = async () => {
       await database.command({ ping: 1 });
       await database.collection("bot_admins").createIndex({ chatId: 1 }, { unique: true });
       await database.collection("guests").createIndex({ createdAt: -1 });
+      await database.collection("guests").createIndex({ side: 1, createdAt: -1 });
+      await database.collection("guests").createIndex({ attending: 1 });
       console.log(`MongoDB connected: ${mongodbDatabaseName}`);
       return database;
     })().catch((error) => {
@@ -160,14 +163,77 @@ const getDatabase = async () => {
   return databasePromise;
 };
 
-const readGuests = async () => {
+const MANAGER_PAGE_SIZE = 10;
+const MANAGER_FILTERS = new Set(["all", "groom", "bride", "unknown"]);
+const normalizeManagerFilter = (value) => MANAGER_FILTERS.has(value) ? value : "all";
+const managerFilterQuery = (filter) => {
+  if (filter === "groom" || filter === "bride") return { side: filter };
+  if (filter === "unknown") return { side: { $nin: ["groom", "bride"] } };
+  return {};
+};
+
+const readGuestCounts = async () => {
   const database = await getDatabase();
-  return database.collection("guests").find({}).sort({ createdAt: 1 }).toArray();
+  const guests = database.collection("guests");
+  const [total, groom, bride, accepted] = await Promise.all([
+    guests.countDocuments({}),
+    guests.countDocuments({ side: "groom" }),
+    guests.countDocuments({ side: "bride" }),
+    guests.countDocuments({ attending: "accept" }),
+  ]);
+  return { total, groom, bride, unknown: total - groom - bride, accepted };
+};
+
+const readGuestPage = async (requestedFilter, requestedPage) => {
+  const filter = normalizeManagerFilter(requestedFilter);
+  const query = managerFilterQuery(filter);
+  const database = await getDatabase();
+  const guests = database.collection("guests");
+  const total = await guests.countDocuments(query);
+  const totalPages = Math.max(1, Math.ceil(total / MANAGER_PAGE_SIZE));
+  const page = Math.max(0, Math.min(Number(requestedPage) || 0, totalPages - 1));
+  const items = await guests.find(query)
+    .sort({ createdAt: -1, _id: -1 })
+    .skip(page * MANAGER_PAGE_SIZE)
+    .limit(MANAGER_PAGE_SIZE)
+    .toArray();
+  return { filter, page, total, totalPages, items };
 };
 
 const saveGuest = async (guest) => {
   const database = await getDatabase();
   return database.collection("guests").insertOne(guest);
+};
+
+const guestObjectId = (value) => ObjectId.isValid(String(value || ""))
+  ? new ObjectId(String(value))
+  : null;
+
+const readGuest = async (guestId) => {
+  const objectId = guestObjectId(guestId);
+  if (!objectId) return null;
+  const database = await getDatabase();
+  return database.collection("guests").findOne({ _id: objectId });
+};
+
+const updateGuest = async (guestId, changes) => {
+  const objectId = guestObjectId(guestId);
+  if (!objectId) return null;
+  const database = await getDatabase();
+  const result = await database.collection("guests").updateOne(
+    { _id: objectId },
+    { $set: { ...changes, updatedAt: new Date() } }
+  );
+  if (!result.matchedCount) return null;
+  return database.collection("guests").findOne({ _id: objectId });
+};
+
+const deleteGuest = async (guestId) => {
+  const objectId = guestObjectId(guestId);
+  if (!objectId) return false;
+  const database = await getDatabase();
+  const result = await database.collection("guests").deleteOne({ _id: objectId });
+  return result.deletedCount === 1;
 };
 
 const authorizeTelegramChat = async (message) => {
@@ -219,34 +285,183 @@ const splitTelegramMessage = (text, limit = 3800) => {
   return chunks;
 };
 
-const sendTelegramText = async (chatId, text) => {
-  for (const chunk of splitTelegramMessage(text)) {
-    await telegramApi("sendMessage", { chat_id: chatId, text: chunk, disable_web_page_preview: true });
+const sendTelegramText = async (chatId, text, options = {}) => {
+  const chunks = splitTelegramMessage(text);
+  for (let index = 0; index < chunks.length; index += 1) {
+    await telegramApi("sendMessage", {
+      chat_id: chatId,
+      text: chunks[index],
+      disable_web_page_preview: true,
+      ...(index === chunks.length - 1 ? options : {}),
+    });
+  }
+};
+
+const editTelegramText = async (chatId, messageId, text, replyMarkup) => {
+  try {
+    return await telegramApi("editMessageText", {
+      chat_id: chatId,
+      message_id: messageId,
+      text,
+      disable_web_page_preview: true,
+      reply_markup: replyMarkup,
+    });
+  } catch (error) {
+    if (!/message is not modified/i.test(error.message)) throw error;
+    return null;
   }
 };
 
 const attendanceText = (attending) => attending === "accept" ? "✅ Придёт" : "❌ Не придёт";
+const sideText = (side) => side === "groom"
+  ? "🤵 Со стороны жениха"
+  : side === "bride"
+    ? "👰 Со стороны невесты"
+    : "➖ Сторона не указана";
 
-const guestNotification = (guest) => [
-  "💌 Новый ответ на приглашение", "", `Имя: ${guest.name}`,
-  `Телефон: ${guest.phone || "не указан"}`, `Ответ: ${attendanceText(guest.attending)}`,
+const guestCardMessage = (guest, title = "👤 Карточка гостя") => [
+  title,
+  "",
+  `Имя: ${guest.name}`,
+  `Телефон: ${guest.phone || "не указан"}`,
+  `Ответ: ${attendanceText(guest.attending)}`,
+  `Сторона: ${sideText(guest.side)}`,
   `Пожелание: ${guest.message || "—"}`,
 ].join("\n");
 
-const guestListMessage = (guests) => {
-  if (!guests.length) return "Список гостей пока пуст.";
-  const accepted = guests.filter((guest) => guest.attending === "accept").length;
-  const rows = guests.map((guest, index) => [
-    `${index + 1}. ${attendanceText(guest.attending)} — ${guest.name}`,
-    `Телефон: ${guest.phone || "не указан"}`,
-    `Пожелание: ${guest.message || "—"}`,
-  ].join("\n"));
-  return [`👥 Список гостей: ${guests.length}`, `✅ Придут: ${accepted} · ❌ Не придут: ${guests.length - accepted}`, "", ...rows].join("\n");
+const guestNotification = (guest) => guestCardMessage(guest, "💌 Новый ответ на приглашение");
+
+const guestActionKeyboard = (guestId, filter = "all", page = 0) => ({
+  inline_keyboard: [
+    [
+      { text: "✏️ Редактировать", callback_data: `edit:${guestId}:${filter}:${page}` },
+      { text: "🗑 Удалить", callback_data: `delete:${guestId}:${filter}:${page}` },
+    ],
+    [{ text: "⬅️ К списку", callback_data: `manage:${filter}:${page}` }],
+  ],
+});
+
+const statsMessage = (counts) => {
+  return [
+    "📊 Статистика RSVP",
+    `Всего ответов: ${counts.total}`,
+    `✅ Придут: ${counts.accepted}`,
+    `❌ Не придут: ${counts.total - counts.accepted}`,
+    "",
+    `🤵 Сторона жениха: ${counts.groom}`,
+    `👰 Сторона невесты: ${counts.bride}`,
+    ...(counts.unknown ? [`➖ Сторона не указана: ${counts.unknown}`] : []),
+  ].join("\n");
 };
 
-const statsMessage = (guests) => {
-  const accepted = guests.filter((guest) => guest.attending === "accept").length;
-  return ["📊 Статистика RSVP", `Всего ответов: ${guests.length}`, `✅ Придут: ${accepted}`, `❌ Не придут: ${guests.length - accepted}`].join("\n");
+const managerFilterTitle = (filter) => filter === "groom"
+  ? "сторона жениха"
+  : filter === "bride"
+    ? "сторона невесты"
+    : filter === "unknown"
+      ? "сторона не указана"
+      : "все гости";
+
+const sendGuestManager = async (chatId, requestedFilter = "all", requestedPage = 0, messageId) => {
+  const counts = await readGuestCounts();
+  if (!counts.total) {
+    const text = "👥 Список гостей пока пуст.";
+    if (messageId) return editTelegramText(chatId, messageId, text, { inline_keyboard: [] });
+    return sendTelegramText(chatId, text);
+  }
+
+  const { filter, page, total, totalPages, items } = await readGuestPage(requestedFilter, requestedPage);
+  const inlineKeyboard = [
+    [{ text: `👥 Все · ${counts.total}`, callback_data: "manage:all:0" }],
+    [
+      { text: `🤵 Жених · ${counts.groom}`, callback_data: "manage:groom:0" },
+      { text: `👰 Невеста · ${counts.bride}`, callback_data: "manage:bride:0" },
+    ],
+  ];
+
+  if (counts.unknown) {
+    inlineKeyboard.push([{ text: `➖ Без стороны · ${counts.unknown}`, callback_data: "manage:unknown:0" }]);
+  }
+
+  items.forEach((guest) => {
+    inlineKeyboard.push([{
+      text: `${guest.attending === "accept" ? "✅" : "❌"} ${guest.side === "groom" ? "🤵" : guest.side === "bride" ? "👰" : "➖"} ${String(guest.name).slice(0, 34)}`,
+      callback_data: `guest:${guest._id}:${filter}:${page}`,
+    }]);
+  });
+
+  if (totalPages > 1) {
+    const navigation = [];
+    if (page > 0) navigation.push({ text: "⬅️", callback_data: `manage:${filter}:${page - 1}` });
+    navigation.push({ text: `${page + 1}/${totalPages}`, callback_data: "noop" });
+    if (page < totalPages - 1) navigation.push({ text: "➡️", callback_data: `manage:${filter}:${page + 1}` });
+    inlineKeyboard.push(navigation);
+  }
+
+  const firstShown = total ? page * MANAGER_PAGE_SIZE + 1 : 0;
+  const lastShown = Math.min((page + 1) * MANAGER_PAGE_SIZE, total);
+  const text = [
+    "👥 Управление гостями",
+    `Фильтр: ${managerFilterTitle(filter)}`,
+    `Показано ${firstShown}–${lastShown} из ${total} · страница ${page + 1}/${totalPages}`,
+    "",
+    "Выберите гостя:",
+  ].join("\n");
+  const replyMarkup = { inline_keyboard: inlineKeyboard };
+  if (messageId) return editTelegramText(chatId, messageId, text, replyMarkup);
+  return sendTelegramText(chatId, text, { reply_markup: replyMarkup });
+};
+
+const showGuestCard = async (chatId, guest, filter = "all", page = 0, messageId) => {
+  const text = guestCardMessage(guest);
+  const replyMarkup = guestActionKeyboard(guest._id, filter, page);
+  if (messageId) return editTelegramText(chatId, messageId, text, replyMarkup);
+  return sendTelegramText(chatId, text, { reply_markup: replyMarkup });
+};
+
+const telegramActorKey = (chatId, userId) => `${chatId}:${userId || "unknown"}`;
+
+const handlePendingTelegramEdit = async (message, text) => {
+  const chatId = String(message?.chat?.id || "");
+  const actorKey = telegramActorKey(chatId, message?.from?.id);
+  const pending = pendingTelegramEdits.get(actorKey);
+  if (!pending) return false;
+
+  if (text.toLowerCase() === "/cancel") {
+    pendingTelegramEdits.delete(actorKey);
+    await sendTelegramText(chatId, "Редактирование отменено.");
+    return true;
+  }
+
+  if (text.startsWith("/")) {
+    pendingTelegramEdits.delete(actorKey);
+    return false;
+  }
+
+  const value = text === "-" ? "" : text;
+  if (pending.field === "name" && (value.length < 2 || value.length > 120)) {
+    await sendTelegramText(chatId, "Имя должно содержать от 2 до 120 символов. Попробуйте ещё раз или отправьте /cancel.");
+    return true;
+  }
+  if (pending.field === "phone" && value.length > 40) {
+    await sendTelegramText(chatId, "Номер телефона слишком длинный. Попробуйте ещё раз или отправьте /cancel.");
+    return true;
+  }
+  if (pending.field === "message" && value.length > 1000) {
+    await sendTelegramText(chatId, "Пожелание слишком длинное. Попробуйте ещё раз или отправьте /cancel.");
+    return true;
+  }
+
+  const guest = await updateGuest(pending.guestId, { [pending.field]: value });
+  pendingTelegramEdits.delete(actorKey);
+  if (!guest) {
+    await sendTelegramText(chatId, "Гость уже удалён или не найден.");
+    return true;
+  }
+
+  await sendTelegramText(chatId, "✅ Данные гостя обновлены.");
+  await showGuestCard(chatId, guest, pending.filter, pending.page);
+  return true;
 };
 
 const handleTelegramMessage = async (message) => {
@@ -256,8 +471,8 @@ const handleTelegramMessage = async (message) => {
 
   if (text === telegramAdminPassword) {
     await authorizeTelegramChat(message);
-    await sendTelegramText(chatId, "✅ Авторизация успешна. Ниже вся база гостей.");
-    await sendTelegramText(chatId, guestListMessage(await readGuests()));
+    await sendTelegramText(chatId, "✅ Авторизация успешна. Открываю список гостей.");
+    await sendGuestManager(chatId, "all", 0);
     return;
   }
 
@@ -267,11 +482,189 @@ const handleTelegramMessage = async (message) => {
     return;
   }
 
+  if (await handlePendingTelegramEdit(message, text)) return;
+
   const command = text.split(/\s+/)[0].toLowerCase().split("@")[0];
-  if (command === "/guests" || command === "/database") await sendTelegramText(chatId, guestListMessage(await readGuests()));
-  else if (command === "/stats") await sendTelegramText(chatId, statsMessage(await readGuests()));
+  if (command === "/guests" || command === "/database") {
+    await sendGuestManager(chatId, "all", 0);
+  } else if (command === "/manage") await sendGuestManager(chatId, "all", 0);
+  else if (command === "/stats") await sendTelegramText(chatId, statsMessage(await readGuestCounts()));
   else if (command === "/start" || command === "/help") {
-    await sendTelegramText(chatId, "Бот свадебного приглашения готов.\n\n/guests — вся база гостей\n/stats — статистика RSVP");
+    await sendTelegramText(chatId, [
+      "Бот свадебного приглашения готов.",
+      "",
+      "/guests — вся база гостей",
+      "/manage — редактировать или удалить гостя",
+      "/stats — статистика RSVP",
+      "/cancel — отменить редактирование",
+    ].join("\n"));
+  }
+};
+
+const handleTelegramCallbackQuery = async (query) => {
+  const chatId = String(query?.message?.chat?.id || "");
+  const messageId = query?.message?.message_id;
+  if (!chatId || !messageId || !query?.id) return;
+
+  try {
+    if (!(await isTelegramChatAuthorized(chatId))) {
+      await telegramApi("answerCallbackQuery", {
+        callback_query_id: query.id,
+        text: "Нет доступа. Сначала отправьте пароль администратора.",
+        show_alert: true,
+      });
+      return;
+    }
+
+    await telegramApi("answerCallbackQuery", { callback_query_id: query.id });
+    const data = String(query.data || "");
+    const [action, ...parts] = data.split(":");
+
+    if (action === "noop") return;
+
+    if (action === "manage") {
+      const filter = normalizeManagerFilter(parts[0]);
+      await sendGuestManager(chatId, filter, Number(parts[1]), messageId);
+      return;
+    }
+
+    if (action === "guest") {
+      const [guestId, rawFilter, rawPage] = parts;
+      const filter = normalizeManagerFilter(rawFilter);
+      const page = Number(rawPage);
+      const guest = await readGuest(guestId);
+      if (!guest) {
+        await sendTelegramText(chatId, "Гость уже удалён или не найден.");
+        await sendGuestManager(chatId, filter, page, messageId);
+        return;
+      }
+      await showGuestCard(chatId, guest, filter, page, messageId);
+      return;
+    }
+
+    if (action === "edit") {
+      const [guestId, rawFilter, rawPage] = parts;
+      const filter = normalizeManagerFilter(rawFilter);
+      const page = Number(rawPage);
+      const guest = await readGuest(guestId);
+      if (!guest) {
+        await sendTelegramText(chatId, "Гость уже удалён или не найден.");
+        await sendGuestManager(chatId, filter, page, messageId);
+        return;
+      }
+      await editTelegramText(chatId, messageId, `${guestCardMessage(guest)}\n\nЧто изменить?`, {
+        inline_keyboard: [
+          [
+            { text: "Имя", callback_data: `field:name:${guest._id}:${filter}:${page}` },
+            { text: "Телефон", callback_data: `field:phone:${guest._id}:${filter}:${page}` },
+          ],
+          [
+            { text: "Сторону", callback_data: `field:side:${guest._id}:${filter}:${page}` },
+            { text: "Ответ", callback_data: `field:attending:${guest._id}:${filter}:${page}` },
+          ],
+          [{ text: "Пожелание", callback_data: `field:message:${guest._id}:${filter}:${page}` }],
+          [{ text: "⬅️ Назад", callback_data: `guest:${guest._id}:${filter}:${page}` }],
+        ],
+      });
+      return;
+    }
+
+    if (action === "field") {
+      const [field, guestId, rawFilter, rawPage] = parts;
+      const filter = normalizeManagerFilter(rawFilter);
+      const page = Number(rawPage);
+      const guest = await readGuest(guestId);
+      if (!guest) {
+        await sendTelegramText(chatId, "Гость уже удалён или не найден.");
+        await sendGuestManager(chatId, filter, page, messageId);
+        return;
+      }
+
+      if (field === "side") {
+        await editTelegramText(chatId, messageId, `${guestCardMessage(guest)}\n\nВыберите сторону:`, {
+          inline_keyboard: [
+            [{ text: "🤵 Сторона жениха", callback_data: `set:side:groom:${guest._id}:${filter}:${page}` }],
+            [{ text: "👰 Сторона невесты", callback_data: `set:side:bride:${guest._id}:${filter}:${page}` }],
+            [{ text: "⬅️ Назад", callback_data: `edit:${guest._id}:${filter}:${page}` }],
+          ],
+        });
+        return;
+      }
+
+      if (field === "attending") {
+        await editTelegramText(chatId, messageId, `${guestCardMessage(guest)}\n\nИзмените ответ:`, {
+          inline_keyboard: [
+            [{ text: "✅ Придёт", callback_data: `set:attending:accept:${guest._id}:${filter}:${page}` }],
+            [{ text: "❌ Не придёт", callback_data: `set:attending:decline:${guest._id}:${filter}:${page}` }],
+            [{ text: "⬅️ Назад", callback_data: `edit:${guest._id}:${filter}:${page}` }],
+          ],
+        });
+        return;
+      }
+
+      if (!["name", "phone", "message"].includes(field)) return;
+      pendingTelegramEdits.set(telegramActorKey(chatId, query?.from?.id), { guestId, field, filter, page });
+      const prompt = field === "name"
+        ? "Введите новое имя гостя."
+        : field === "phone"
+          ? "Введите новый телефон. Отправьте «-», чтобы очистить поле."
+          : "Введите новое пожелание. Отправьте «-», чтобы очистить поле.";
+      await sendTelegramText(chatId, `${prompt}\nДля отмены отправьте /cancel.`, {
+        reply_markup: { force_reply: true, selective: true },
+      });
+      return;
+    }
+
+    if (action === "set") {
+      const [field, value, guestId, rawFilter, rawPage] = parts;
+      const filter = normalizeManagerFilter(rawFilter);
+      const page = Number(rawPage);
+      const allowed = field === "side"
+        ? ["groom", "bride"]
+        : field === "attending"
+          ? ["accept", "decline"]
+          : [];
+      if (!allowed.includes(value)) return;
+      const guest = await updateGuest(guestId, { [field]: value });
+      if (!guest) {
+        await sendTelegramText(chatId, "Гость уже удалён или не найден.");
+        await sendGuestManager(chatId, filter, page, messageId);
+        return;
+      }
+      await showGuestCard(chatId, guest, filter, page, messageId);
+      return;
+    }
+
+    if (action === "delete") {
+      const [guestId, rawFilter, rawPage] = parts;
+      const filter = normalizeManagerFilter(rawFilter);
+      const page = Number(rawPage);
+      const guest = await readGuest(guestId);
+      if (!guest) {
+        await sendTelegramText(chatId, "Гость уже удалён или не найден.");
+        await sendGuestManager(chatId, filter, page, messageId);
+        return;
+      }
+      await editTelegramText(chatId, messageId, `${guestCardMessage(guest)}\n\nУдалить этого гостя без возможности восстановления?`, {
+        inline_keyboard: [
+          [{ text: "🗑 Да, удалить", callback_data: `delete-confirm:${guest._id}:${filter}:${page}` }],
+          [{ text: "Отмена", callback_data: `guest:${guest._id}:${filter}:${page}` }],
+        ],
+      });
+      return;
+    }
+
+    if (action === "delete-confirm") {
+      const [guestId, rawFilter, rawPage] = parts;
+      const filter = normalizeManagerFilter(rawFilter);
+      const page = Number(rawPage);
+      const deleted = await deleteGuest(guestId);
+      await sendTelegramText(chatId, deleted ? "✅ Гость удалён." : "Гость уже удалён или не найден.");
+      await sendGuestManager(chatId, filter, page, messageId);
+    }
+  } catch (error) {
+    console.error("Telegram callback error:", error.message);
+    await sendTelegramText(chatId, "Не удалось выполнить действие. Попробуйте ещё раз через /manage.").catch(() => undefined);
   }
 };
 
@@ -287,7 +680,9 @@ const startTelegramPolling = async () => {
     if (webhook?.url) { console.warn("Telegram bot has an active webhook; long polling was not started."); return; }
     await getDatabase();
     await telegramApi("setMyCommands", { commands: [
-      { command: "guests", description: "Список гостей" }, { command: "stats", description: "Статистика RSVP" },
+      { command: "guests", description: "Список гостей" },
+      { command: "manage", description: "Редактировать или удалить гостя" },
+      { command: "stats", description: "Статистика RSVP" },
     ] });
     console.log("Telegram RSVP bot polling started");
   } catch (error) {
@@ -296,10 +691,11 @@ const startTelegramPolling = async () => {
   }
   while (true) {
     try {
-      const updates = await telegramApi("getUpdates", { offset: telegramUpdateOffset, timeout: 25, allowed_updates: ["message"] });
+      const updates = await telegramApi("getUpdates", { offset: telegramUpdateOffset, timeout: 25, allowed_updates: ["message", "callback_query"] });
       for (const update of updates) {
         telegramUpdateOffset = update.update_id + 1;
         if (update.message) await handleTelegramMessage(update.message);
+        if (update.callback_query) await handleTelegramCallbackQuery(update.callback_query);
       }
     } catch (error) {
       console.error("Telegram polling error:", error.message);
@@ -325,22 +721,24 @@ const validateRsvp = (body) => {
   const name = typeof body.name === "string" ? body.name.trim() : "";
   const phone = typeof body.phone === "string" ? body.phone.trim() : "";
   const attending = body.attending;
+  const side = body.side;
   const message = typeof body.message === "string" ? body.message.trim() : "";
   const language = body.language === "ru" ? "ru" : "uz";
   if (name.length < 2 || name.length > 120) return { error: "Введите имя" };
   if (phone.length > 40) return { error: "Номер телефона слишком длинный" };
   if (!["accept", "decline"].includes(attending)) return { error: "Выберите, придёте вы или нет" };
+  if (!["groom", "bride"].includes(side)) return { error: "Выберите сторону жениха или невесты" };
   if (message.length > 1000) return { error: "Пожелание слишком длинное" };
-  return { name, phone, attending, message, language };
+  return { name, phone, attending, side, message, language };
 };
 
 const server = http.createServer(async (request, response) => {
   const urlPath = decodeURIComponent((request.url || "/").split("?")[0]);
   if (urlPath === "/api/config" && request.method === "GET") {
-    const latitude = Number(process.env.YANDEX_MAPS_LAT || 41.311151);
-    const longitude = Number(process.env.YANDEX_MAPS_LNG || 69.279737);
+    const latitude = Number(process.env.YANDEX_MAPS_LAT || 41.311341);
+    const longitude = Number(process.env.YANDEX_MAPS_LNG || 69.282722);
     sendJson(response, 200, { yandexMapsApiKey: process.env.YANDEX_MAPS_API_KEY || "", yandexMapsCenter: [
-      Number.isFinite(latitude) ? latitude : 41.311151, Number.isFinite(longitude) ? longitude : 69.279737,
+      Number.isFinite(latitude) ? latitude : 41.311341, Number.isFinite(longitude) ? longitude : 69.282722,
     ] });
     return;
   }
@@ -351,12 +749,17 @@ const server = http.createServer(async (request, response) => {
       const validated = validateRsvp(await readJsonBody(request));
       if (validated.error) { sendJson(response, 400, { ok: false, error: validated.error }); return; }
       const guest = { ...validated, createdAt: new Date() };
-      await saveGuest(guest);
+      const insertion = await saveGuest(guest);
+      guest._id = insertion.insertedId;
       let telegramSent = false;
       if (telegramConfigured) {
         try {
           const chatIds = await getAuthorizedChatIds();
-          const deliveries = await Promise.allSettled(chatIds.map((chatId) => sendTelegramText(chatId, guestNotification(guest))));
+          const deliveries = await Promise.allSettled(chatIds.map((chatId) => sendTelegramText(
+            chatId,
+            guestNotification(guest),
+            { reply_markup: guestActionKeyboard(guest._id) }
+          )));
           telegramSent = deliveries.some((delivery) => delivery.status === "fulfilled");
         }
         catch (error) { console.error("Telegram RSVP notification failed:", error.message); }

@@ -13,11 +13,10 @@ const cover = document.querySelector(".cover");
 const coverTrigger = document.querySelector(".cover-trigger");
 const coverVideo = document.querySelector(".cover-video");
 const heroVideo = document.querySelector(".hero-video");
+const heroRsvp = document.querySelector(".hero-rsvp");
 const languageButton = document.querySelector(".language-pill");
 const music = document.querySelector("#weddingMusic");
 const soundToggle = document.querySelector(".sound-toggle");
-const accordion = document.querySelector(".accordion");
-const accordionPanel = document.querySelector(".accordion-panel");
 const form = document.querySelector(".rsvp form");
 const statusOutput = document.querySelector(".form-status");
 const mapContainer = document.querySelector("#yandex-map");
@@ -53,34 +52,26 @@ const copy = {
         storyKicker: "Bizning yo'limiz",
         storyTitle: "Sevgi hikoyamiz",
         timeline: [
-            ["Qanday tanishdik", "Yo'llarimiz eng kutilmagan paytda kesishdi. Tasodifiy uchrashuv chiroyli hikoyamizning boshlanishiga aylandi."],
-            ["Birinchi sarguzasht", "Sayohatga va samimiy suhbatlarga bo'lgan mehrimizni kashf etdik, har bir sokin lahza bizni yanada yaqinlashtirdi."],
-            ["Oldinga qadam", "Bu sevgi abadiy ekanini angladik. Birga hayot qurish har kunimizni iliqroq va mustahkamroq qildi."],
+            ["Qanday tanishdik", "Biz universitetda tanishdik. Oddiy uchrashuv go'zal hikoyamizning boshlanishiga aylandi."],
+            ["Hikoyamiz boshlandi", "Shu yili bir-birimiz uchun qanchalik muhim ekanimizni anglab, uchrasha boshladik."],
             ["Taklif", "Yuraklarimiz muhabbat va kelajak orzulariga to'lib, savol berildi va quvonch ko'z yoshlari bilan javob olindi."]
         ],
         programLabel: "Kun dasturi",
         programTitle: "Kun dasturi",
         programIntro: "Siz uchun tayyorlaganlarimiz",
         program: [
-            ["16:30", "Mehmonlar kelishi", "Kutib olish va reception"],
-            ["17:00", "Marosim", "Nikoh marosimi"],
-            ["18:00", "Kokteyl", "Ichimliklar va yengil tamaddilar"],
+            ["18:30", "Mehmonlar kelishi", "Kutib olish"],
+            ["19:00", "Kuyov va kelinning kirib kelishi", "Bayram boshlanishi"],
             ["20:00", "Kechki ovqat", "To'y ziyofati"],
             ["23:00", "Bazm", "Raqsga tushamiz!"],
             ["02:30", "Yakun", "Xayrlashuv"]
         ],
-        giftsLabel: "Sovg'alar",
-        giftsTitle: "Sovg'alar",
-        giftsText: "Biz uchun eng muhim sovg'a - sizning ishtirokingiz. Agar sovg'a ulashmoqchi bo'lsangiz, buni o'zingizga qulay usulda qilishingiz mumkin.",
-        contribution: "Hissa",
-        bankCard: "Bank karta: 8600 0000 0000 0000",
-        cardName: "Ism: Amal va Parizoda",
         detailsLabel: "Tadbir tafsilotlari",
         joinUs: "Bizga qo'shiling",
         detailsTitle: "Tadbir tafsilotlari",
         detailsIntro: "Ushbu maxsus kunni siz bilan nishonlashni intiqlik bilan kutyapmiz. Kerakli barcha ma'lumotlar shu yerda.",
         ceremonyTitle: "To'y marosimi",
-        ceremonyTime: "◷ 16:00",
+        ceremonyTime: "◷ 18:30",
         ceremonyPlace: "⌖ Hotel Uzbekistan",
         ceremonyAddress: "Mahtumquli ko'chasi, 45, Toshkent, O'zbekiston",
         mapLabel: "Marosim belgisi qo'yilgan xarita",
@@ -95,7 +86,7 @@ const copy = {
         rsvpLabel: "Ishtirokni tasdiqlash formasi",
         rsvpEyebrow: "Mehmonimiz bo'ling",
         rsvpTitle: "Javob",
-        rsvpIntro: "Iltimos, 2026-yil 15-iyulgacha bizga kelishingizni xabar qiling.",
+        rsvpIntro: "Iltimos, 2026-yil 5-avgustgacha bizga kelishingizni xabar qiling.",
         fullName: "To'liq ism *",
         fullNamePlaceholder: "To'liq ismingiz",
         phone: "Telefon raqami (ixtiyoriy)",
@@ -103,6 +94,9 @@ const copy = {
         attending: "Ishtirok etasizmi? *",
         accept: "Ha, boraman",
         decline: "Yo'q, bora olmayman",
+        side: "Kim tomondan taklif etilgansiz? *",
+        groomSide: "Kuyov tomoni",
+        brideSide: "Kelin tomoni",
         message: "Juftlik uchun tilak",
         messagePlaceholder: "Samimiy tilaklaringizni yozing...",
         submit: "Javobni yuborish",
@@ -130,35 +124,27 @@ const copy = {
         storyKicker: "Наш путь",
         storyTitle: "Наша история любви",
         timeline: [
-            ["Как мы встретились", "Наши пути пересеклись самым неожиданным образом. Случайная встреча стала началом нашей красивой истории."],
-            ["Первое приключение", "Мы открыли общую любовь к путешествиям и долгим разговорам, а каждый тихий момент делал нас ближе."],
-            ["Движение вперед", "Мы поняли, что это навсегда. Совместная жизнь с каждым днем становилась теплее и крепче."],
+            ["Как мы встретились", "Мы познакомились в университете. Обычная встреча стала началом нашей особенной истории."],
+            ["Начало нашей истории", "Именно тогда мы поняли, как много значим друг для друга, и начали встречаться."],
             ["Предложение", "С сердцами, полными любви и мечтаний о будущем, был задан главный вопрос и получен ответ со слезами радости."]
         ],
         programLabel: "Программа дня",
         programTitle: "Программа дня",
         programIntro: "Что мы подготовили для вас",
         program: [
-            ["16:30", "Прибытие гостей", "Встреча и прием"],
-            ["17:00", "Церемония", "Свадебная церемония"],
-            ["18:00", "Коктейль", "Напитки и легкие закуски"],
+            ["18:30", "Прибытие гостей", "Встреча гостей"],
+            ["19:00", "Вход жениха и невесты", "Начало торжества"],
             ["20:00", "Ужин", "Свадебный банкет"],
             ["23:00", "Вечеринка", "Танцуем!"],
             ["02:30", "Завершение", "До свидания"]
         ],
-        giftsLabel: "Подарки",
-        giftsTitle: "Подарки",
-        giftsText: "Самый важный подарок для нас - ваше присутствие. Если вы захотите сделать подарок, вы можете выбрать удобный для себя способ.",
-        contribution: "Вклад",
-        bankCard: "Банковская карта: 8600 0000 0000 0000",
-        cardName: "Имя: Амал и Паризода",
         detailsLabel: "Детали мероприятия",
         joinUs: "Присоединяйтесь к нам",
         detailsTitle: "Детали мероприятия",
         detailsIntro: "Мы с нетерпением ждем возможности разделить с вами этот особенный день. Здесь вся нужная информация.",
         ceremonyTitle: "Свадебная церемония",
-        ceremonyTime: "◷ 16:00",
-        ceremonyPlace: "⌖ Отель Uzbekistan",
+        ceremonyTime: "◷ 18:30",
+        ceremonyPlace: "⌖ Отель «Узбекистан»",
         ceremonyAddress: "улица Махтумкули, 45, Ташкент, Узбекистан",
         mapLabel: "Карта с отметкой места церемонии",
         mapLoading: "Карта загружается…",
@@ -172,7 +158,7 @@ const copy = {
         rsvpLabel: "Форма подтверждения участия",
         rsvpEyebrow: "Будьте нашим гостем",
         rsvpTitle: "Ответ",
-        rsvpIntro: "Пожалуйста, сообщите нам до 15 июля 2026 года, сможете ли вы присоединиться.",
+        rsvpIntro: "Пожалуйста, сообщите нам до 5 августа 2026 года, сможете ли вы присоединиться.",
         fullName: "Полное имя *",
         fullNamePlaceholder: "Ваше полное имя",
         phone: "Номер телефона (необязательно)",
@@ -180,6 +166,9 @@ const copy = {
         attending: "Вы будете присутствовать? *",
         accept: "Да, приду",
         decline: "Нет, не приду",
+        side: "С чьей стороны вы приглашены? *",
+        groomSide: "Со стороны жениха",
+        brideSide: "Со стороны невесты",
         message: "Пожелание для пары",
         messagePlaceholder: "Напишите ваши теплые пожелания...",
         submit: "Отправить ответ",
@@ -250,7 +239,7 @@ const initializeYandexMap = () => __awaiter(void 0, void 0, void 0, function* ()
             && configuredCenter.length === 2
             && configuredCenter.every(Number.isFinite)
             ? configuredCenter
-            : [41.311151, 69.279737];
+            : [41.311341, 69.282722];
         yield loadYandexMapsApi(apiKey, currentLanguage);
         const yandexMaps = getYandexMapsApi();
         if (!yandexMaps)
@@ -319,7 +308,7 @@ const setCoverVideoLanguage = (language) => {
     primeCoverVideoFirstFrame();
 };
 const applyLanguage = (language) => {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d, _e, _f;
     const text = copy[language];
     currentLanguage = language;
     setCoverVideoLanguage(language);
@@ -333,10 +322,9 @@ const applyLanguage = (language) => {
     (_a = document.querySelector(".hero")) === null || _a === void 0 ? void 0 : _a.setAttribute("aria-label", text.heroSectionLabel);
     (_b = document.querySelector(".story")) === null || _b === void 0 ? void 0 : _b.setAttribute("aria-label", text.storyLabel);
     (_c = document.querySelector(".program")) === null || _c === void 0 ? void 0 : _c.setAttribute("aria-label", text.programLabel);
-    (_d = document.querySelector(".gifts")) === null || _d === void 0 ? void 0 : _d.setAttribute("aria-label", text.giftsLabel);
-    (_e = document.querySelector(".details")) === null || _e === void 0 ? void 0 : _e.setAttribute("aria-label", text.detailsLabel);
-    (_f = document.querySelector(".rsvp")) === null || _f === void 0 ? void 0 : _f.setAttribute("aria-label", text.rsvpLabel);
-    (_g = document.querySelector(".map")) === null || _g === void 0 ? void 0 : _g.setAttribute("aria-label", text.mapLabel);
+    (_d = document.querySelector(".details")) === null || _d === void 0 ? void 0 : _d.setAttribute("aria-label", text.detailsLabel);
+    (_e = document.querySelector(".rsvp")) === null || _e === void 0 ? void 0 : _e.setAttribute("aria-label", text.rsvpLabel);
+    (_f = document.querySelector(".map")) === null || _f === void 0 ? void 0 : _f.setAttribute("aria-label", text.mapLabel);
     if (yandexMapState === "idle" || yandexMapState === "loading") {
         setText(".map-status", text.mapLoading);
     }
@@ -365,11 +353,6 @@ const applyLanguage = (language) => {
         setText(`.program-list article:nth-child(${index + 1}) h3`, text.program[index][1]);
         setText(`.program-list article:nth-child(${index + 1}) p`, text.program[index][2]);
     });
-    setText(".gifts h2", text.giftsTitle);
-    setText(".gifts > p", text.giftsText);
-    setText(".accordion span", text.contribution);
-    setText(".accordion-panel p:nth-child(1)", text.bankCard);
-    setText(".accordion-panel p:nth-child(2)", text.cardName);
     setText(".details > .eyebrow", text.joinUs);
     setText(".details h2", text.detailsTitle);
     setText(".details-intro", text.detailsIntro);
@@ -389,9 +372,12 @@ const applyLanguage = (language) => {
     setInput("input[name='name']", text.fullNamePlaceholder);
     setLabelStart(".rsvp form > label:nth-of-type(2)", text.phone);
     setInput("input[name='phone']", text.phonePlaceholder);
-    setText(".rsvp legend", text.attending);
-    setLabelEnd("fieldset label:nth-of-type(1)", text.accept);
-    setLabelEnd("fieldset label:nth-of-type(2)", text.decline);
+    setText(".attendance-fieldset legend", text.attending);
+    setLabelEnd(".attendance-fieldset label:nth-of-type(1)", text.accept);
+    setLabelEnd(".attendance-fieldset label:nth-of-type(2)", text.decline);
+    setText(".side-fieldset legend", text.side);
+    setLabelEnd(".side-fieldset label:nth-of-type(1)", text.groomSide);
+    setLabelEnd(".side-fieldset label:nth-of-type(2)", text.brideSide);
     setLabelStart(".rsvp form > label:nth-of-type(3)", text.message);
     setInput("textarea[name='message']", text.messagePlaceholder);
     setText(".rsvp form button", text.submit);
@@ -491,6 +477,36 @@ const openInvitation = () => {
     void coverVideo.play().catch(playFrameFallback);
 };
 coverTrigger === null || coverTrigger === void 0 ? void 0 : coverTrigger.addEventListener("click", openInvitation);
+heroRsvp === null || heroRsvp === void 0 ? void 0 : heroRsvp.addEventListener("click", (event) => {
+    const target = document.querySelector(heroRsvp.hash);
+    if (!target)
+        return;
+    event.preventDefault();
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        target.scrollIntoView();
+        return;
+    }
+    const startY = window.scrollY;
+    const targetY = startY + target.getBoundingClientRect().top;
+    const distance = targetY - startY;
+    const duration = 1800;
+    const startTime = performance.now();
+    const animateScroll = (currentTime) => {
+        const progress = Math.min((currentTime - startTime) / duration, 1);
+        const easedProgress = progress < 0.5
+            ? 4 * progress * progress * progress
+            : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+        window.scrollTo(0, startY + distance * easedProgress);
+        if (progress < 1) {
+            window.requestAnimationFrame(animateScroll);
+            return;
+        }
+        if (window.location.hash !== heroRsvp.hash) {
+            window.history.pushState(null, "", heroRsvp.hash);
+        }
+    };
+    window.requestAnimationFrame(animateScroll);
+});
 soundToggle === null || soundToggle === void 0 ? void 0 : soundToggle.addEventListener("click", () => __awaiter(void 0, void 0, void 0, function* () {
     if (!music)
         return;
@@ -506,11 +522,6 @@ soundToggle === null || soundToggle === void 0 ? void 0 : soundToggle.addEventLi
         pauseMusic();
     }
 }));
-accordion === null || accordion === void 0 ? void 0 : accordion.addEventListener("click", () => {
-    var _a;
-    const isOpen = (_a = accordionPanel === null || accordionPanel === void 0 ? void 0 : accordionPanel.classList.toggle("is-open")) !== null && _a !== void 0 ? _a : false;
-    accordion.setAttribute("aria-expanded", String(isOpen));
-});
 form === null || form === void 0 ? void 0 : form.addEventListener("submit", (event) => __awaiter(void 0, void 0, void 0, function* () {
     event.preventDefault();
     const submitButton = form.querySelector("button[type='submit']");
@@ -527,6 +538,7 @@ form === null || form === void 0 ? void 0 : form.addEventListener("submit", (eve
                 name: formData.get("name"),
                 phone: formData.get("phone"),
                 attending: formData.get("attending"),
+                side: formData.get("side"),
                 message: formData.get("message"),
                 language: currentLanguage,
             }),

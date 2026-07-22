@@ -66,7 +66,11 @@
           </video>
           <div class="hero-copy">
             <p class="eyebrow">We are getting married</p>
-            <h1>Amal &amp; Parizoda</h1>
+            <h1 class="couple-names">
+              <span>Amalbek</span>
+              <span class="couple-ampersand">&amp;</span>
+              <span>Parizoda</span>
+            </h1>
             <div class="divider"><span></span><i>✦</i><span></span></div>
             <p class="date">15 August 2026</p>
           </div>
@@ -79,19 +83,14 @@
           <div class="ornament"><span></span><i>♡</i><span></span></div>
           <div class="timeline">
             <article>
-              <time>2020</time>
+              <time>2022</time>
               <h3>How We Met</h3>
-              <p>Our paths crossed in the most unexpected way. What started as a chance encounter became the beginning of our beautiful journey together.</p>
-            </article>
-            <article>
-              <time>2021</time>
-              <h3>First Adventure</h3>
-              <p>We discovered our shared love for exploration and long conversations, and every quiet moment brought us closer.</p>
+              <p>We met at university. An ordinary encounter became the beginning of our special story.</p>
             </article>
             <article>
               <time>2023</time>
-              <h3>Moving Forward</h3>
-              <p>We knew this was forever. Building our life together made every passing day feel warmer and stronger.</p>
+              <h3>Our Story Began</h3>
+              <p>That was the year we realized how much we meant to each other and started dating.</p>
             </article>
             <article>
               <time>2025</time>
@@ -108,18 +107,13 @@
           <div class="program-list">
             <article>
               <i>♙</i>
-              <time>4:30 PM</time>
+              <time>6:30 PM</time>
               <div><h3>Guest Arrival</h3><p>Welcome and reception</p></div>
             </article>
             <article>
               <i>♡</i>
-              <time>5:00 PM</time>
-              <div><h3>Ceremony</h3><p>Civil wedding</p></div>
-            </article>
-            <article>
-              <i>♧</i>
-              <time>6:00 PM</time>
-              <div><h3>Cocktail</h3><p>Aperitifs and drinks</p></div>
+              <time>7:00 PM</time>
+              <div><h3>Bride &amp; Groom Entrance</h3><p>The celebration begins</p></div>
             </article>
             <article>
               <i>♨</i>
@@ -139,19 +133,6 @@
           </div>
         </section>
 
-        <section class="gifts section-light" aria-label="Gifts">
-          <h2>Gifts</h2>
-          <p>Your presence is what matters most to us. If you wish to give us a gift, you can do so in the way that suits you best.</p>
-          <button class="accordion" type="button" aria-expanded="false">
-            <span>Contribution</span>
-            <b>⌄</b>
-          </button>
-          <div class="accordion-panel">
-            <p>Bank card: 8600 0000 0000 0000</p>
-            <p>Name: Amal &amp; Parizoda</p>
-          </div>
-        </section>
-
         <section class="details section-white" aria-label="Event details">
           <p class="eyebrow orange">Join us</p>
           <h2>Event Details</h2>
@@ -159,14 +140,14 @@
           <article class="detail-card">
             <div class="sparkle">✦</div>
             <h3>Wedding Ceremony</h3>
-            <p class="meta">◷ 4:00 PM</p>
+            <p class="meta">◷ 6:30 PM</p>
             <p class="meta">⌖ Hotel Uzbekistan</p>
             <p>45 Mahtumquli Street, Tashkent, Uzbekistan</p>
             <div class="map-shell">
               <div id="yandex-map" class="map" role="region" aria-label="Interactive map with ceremony pin"></div>
               <p class="map-status" aria-live="polite">Map is loading…</p>
             </div>
-            <a class="outline-btn map-link" href="https://yandex.ru/maps/-/CTFIeN7u" target="_blank" rel="noreferrer">⌁ Open in Maps</a>
+            <a class="outline-btn map-link" href="https://yandex.uz/maps/org/hotel_uzbekistan/39433811199/" target="_blank" rel="noreferrer">⌁ Open in Maps</a>
             <a class="outline-btn" href="#" download>▣ Add to Calendar</a>
           </article>
           <article class="dress">
@@ -180,7 +161,7 @@
           <p class="eyebrow orange">Be our guest</p>
           <h2>RSVP</h2>
           <div class="ornament"><span></span><i>♡</i><span></span></div>
-          <p>Please let us know if you'll be joining us by July 15, 2026</p>
+          <p>Please let us know if you'll be joining us by August 5, 2026</p>
           <form>
             <label>
               Full Name *
@@ -190,10 +171,15 @@
               Phone number (optional)
               <input type="tel" name="phone" maxlength="40" autocomplete="tel" inputmode="tel" placeholder="+998 90 123 45 67" />
             </label>
-            <fieldset>
+            <fieldset class="attendance-fieldset">
               <legend>Will you be attending? *</legend>
               <label><input required type="radio" name="attending" value="accept" /> Joyfully Accept</label>
               <label><input type="radio" name="attending" value="decline" /> Regretfully Decline</label>
+            </fieldset>
+            <fieldset class="side-fieldset">
+              <legend>Whose side are you invited from? *</legend>
+              <label><input required type="radio" name="side" value="groom" /> Groom's Side</label>
+              <label><input type="radio" name="side" value="bride" /> Bride's Side</label>
             </fieldset>
             <label>
               Message for the Couple
