@@ -60,7 +60,6 @@ const copy = {
     ceremonyAddress: "Mahtumquli ko'chasi, 45, Toshkent, O'zbekiston",
     mapLabel: "Marosim belgisi qo'yilgan xarita",
     openMaps: "⌁ Xarita orqali ochish",
-    addCalendar: "▣ Kalendarga qo'shish",
     dressTitle: "Dress-kod",
     dressCode: "Rasmiy",
     dressText: "Bayramimizga mehmonlardan nafis va did bilan kiyinib kelishlarini so'raymiz.",
@@ -125,7 +124,6 @@ const copy = {
     ceremonyAddress: "улица Махтумкули, 45, Ташкент, Узбекистан",
     mapLabel: "Карта с отметкой места церемонии",
     openMaps: "⌁ Открыть в картах",
-    addCalendar: "▣ Добавить в календарь",
     dressTitle: "Дресс-код",
     dressCode: "Формальный",
     dressText: "Мы будем рады, если гости придут на наш праздник в элегантных образах.",
@@ -260,7 +258,6 @@ const applyLanguage = (language: "uz" | "ru") => {
   setText(".detail-card .meta:nth-of-type(2)", text.ceremonyPlace);
   setText(".detail-card > p:not(.meta)", text.ceremonyAddress);
   setText(".outline-btn:nth-of-type(1)", text.openMaps);
-  setText(".outline-btn:nth-of-type(2)", text.addCalendar);
   setText(".dress h3", text.dressTitle);
   setText(".dress p", text.dressCode);
   setText(".dress span", text.dressText);

@@ -588,15 +588,22 @@ p {
   margin-bottom: 70px;
 }
 
-.timeline article::before {
-  content: "";
+.timeline-icon {
   position: absolute;
-  left: -66px;
-  top: 10px;
-  width: 18px;
-  height: 18px;
+  left: -75px;
+  top: 1px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(219, 143, 85, 0.72);
   border-radius: 50%;
-  background: var(--copper);
+  background: var(--cream);
+  color: var(--copper);
+  font-family: "Segoe UI Emoji", "Apple Color Emoji", sans-serif;
+  font-size: 17px;
+  font-style: normal;
+  line-height: 1;
 }
 
 .timeline time {
@@ -1052,7 +1059,7 @@ form button:disabled {
 
 /* Reference-matched full-screen invitation opener. */
 .cover {
-  width: min(100vw, 601px);
+  width: min(100vw, 523px);
   height: 100dvh;
   min-height: 100dvh;
   padding: 0;
@@ -1179,16 +1186,16 @@ body.cover-locked .sound-toggle {
 }
 
 body.cover-locked .language-pill {
-  top: 33px;
-  right: max(33px, calc((100vw - 601px) / 2 + 33px));
+  top: 12px;
+  right: max(28px, calc((100vw - 523px) / 2 + 28px));
   width: auto;
-  min-width: 126px;
-  height: 52px;
-  padding: 0 16px;
+  min-width: 0;
+  height: 36px;
+  padding: 0 14px;
 }
 
 body.cover-locked .sound-toggle {
-  right: max(31px, calc((100vw - 601px) / 2 + 31px));
+  right: max(28px, calc((100vw - 523px) / 2 + 28px));
   bottom: 31px;
   width: 54px;
   min-width: 54px;
