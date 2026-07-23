@@ -60,12 +60,8 @@ const copy = {
     ceremonyAddress: "Mahtumquli ko'chasi, 45, Toshkent, O'zbekiston",
     mapLabel: "Marosim belgisi qo'yilgan xarita",
     openMaps: "⌁ Xarita orqali ochish",
-    dressTitle: "Dress-kod",
-    dressCode: "Rasmiy",
-    dressText: "Bayramimizga mehmonlardan nafis va did bilan kiyinib kelishlarini so'raymiz.",
     rsvpLabel: "Ishtirokni tasdiqlash formasi",
-    rsvpEyebrow: "Mehmonimiz bo'ling",
-    rsvpTitle: "Javob",
+    rsvpTitle: "Mehmonimiz bo'ling",
     rsvpIntro: "Iltimos, 2026-yil 5-avgustgacha bizga kelishingizni xabar qiling.",
     fullName: "To'liq ism *",
     fullNamePlaceholder: "To'liq ismingiz",
@@ -124,12 +120,8 @@ const copy = {
     ceremonyAddress: "улица Махтумкули, 45, Ташкент, Узбекистан",
     mapLabel: "Карта с отметкой места церемонии",
     openMaps: "⌁ Открыть в картах",
-    dressTitle: "Дресс-код",
-    dressCode: "Формальный",
-    dressText: "Мы будем рады, если гости придут на наш праздник в элегантных образах.",
     rsvpLabel: "Форма подтверждения участия",
-    rsvpEyebrow: "Будьте нашим гостем",
-    rsvpTitle: "Ответ",
+    rsvpTitle: "Будьте нашим гостем",
     rsvpIntro: "Пожалуйста, сообщите нам до 5 августа 2026 года, сможете ли вы присоединиться.",
     fullName: "Полное имя *",
     fullNamePlaceholder: "Ваше полное имя",
@@ -258,13 +250,9 @@ const applyLanguage = (language: "uz" | "ru") => {
   setText(".detail-card .meta:nth-of-type(2)", text.ceremonyPlace);
   setText(".detail-card > p:not(.meta)", text.ceremonyAddress);
   setText(".outline-btn:nth-of-type(1)", text.openMaps);
-  setText(".dress h3", text.dressTitle);
-  setText(".dress p", text.dressCode);
-  setText(".dress span", text.dressText);
 
-  setText(".rsvp > .eyebrow", text.rsvpEyebrow);
   setText(".rsvp h2", text.rsvpTitle);
-  setText(".rsvp > p:not(.eyebrow)", text.rsvpIntro);
+  setText(".rsvp > p", text.rsvpIntro);
   setLabelStart(".rsvp form > label:nth-of-type(1)", text.fullName);
   setInput("input[name='name']", text.fullNamePlaceholder);
   setLabelStart(".rsvp form > label:nth-of-type(2)", text.phone);
@@ -489,7 +477,7 @@ form?.addEventListener("submit", async (event) => {
 });
 
 const revealTargets = document.querySelectorAll<HTMLElement>(
-  ".timeline article, .program-list article, .detail-card, .dress, .rsvp form"
+  ".timeline article, .program-list article, .detail-card, .rsvp form"
 );
 
 revealTargets.forEach((target) => target.classList.add("reveal"));
