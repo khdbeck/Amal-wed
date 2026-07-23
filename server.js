@@ -319,11 +319,21 @@ const sideText = (side) => side === "groom"
     ? "👰 Со стороны невесты"
     : "➖ Сторона не указана";
 
+const telegramPhoneText = (phone) => {
+  const value = String(phone || "").trim();
+  if (!value) return "";
+
+  const digits = value.replace(/\D/g, "");
+  if (!digits) return value;
+
+  return `${value.startsWith("+") ? "+" : ""}${digits}`;
+};
+
 const guestCardMessage = (guest, title = "👤 Карточка гостя") => [
   title,
   "",
   `Имя: ${guest.name}`,
-  `Телефон: ${guest.phone || "не указан"}`,
+  `Телефон: ${telegramPhoneText(guest.phone) || "не указан"}`,
   `Ответ: ${attendanceText(guest.attending)}`,
   `Сторона: ${sideText(guest.side)}`,
   `Пожелание: ${guest.message || "—"}`,
